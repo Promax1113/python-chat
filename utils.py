@@ -34,27 +34,49 @@ def get_userid(__username):
     return userid
 
 
-def login():
-    username = input('Username: ')
-    password = getpass()
-    pass_hash: str = hashlib.sha256((username+password).encode()).hexdigest()
-    if not os.path.isfile('pass.hash'):
-        with open('pass.hash', 'w') as f:
-            f.write(pass_hash)
-            f.close()
-        pass_file = pass_hash
+def login(username = None, password = None, ip_address = None):
+    if username == None and password == None:       
+        username = input('Username: ')
+        password = getpass()
+        pass_hash: str = hashlib.sha256((username+password).encode()).hexdigest()
+        if not os.path.isfile('pass.hash'):
+            with open('pass.hash', 'w') as f:
+                f.write(pass_hash)
+                f.close()
+            pass_file = pass_hash
+        else:
+            with open('pass.hash', 'r') as f:
+                pass_file = f.readline()
+        if pass_hash == pass_file:
+            print('Access granted!')
+            return chat_group.user(username, get_userid(username), ip_address)
+        else:
+            print('Access Denied!')
+            login
     else:
-        with open('pass.hash', 'r') as f:
-            pass_file = f.readline()
-    if pass_hash == pass_file:
-        print('Access granted!')
-        return chat_group.user(username, get_userid(username))
-    else:
-        print('Access Denied!')
-        login()
+        pass_hash: str = hashlib.sha256(bytes(f"{username}{password}", 'utf-8')).hexdigest()
+        userid = get_userid(username)
+        if not os.path.isfile(f'{username}.hash'):
+            with open(f'{username}.hash', 'w') as f:
+                f.write(pass_hash)
+                f.close()
+            pass_file = pass_hash
+        else:
+            with open(f'{username}.hash', 'r') as f:
+                pass_file = f.readline()
+        if pass_hash == pass_file:
+            print('Access granted!')
+            return chat_group.user(username, userid, ip_address)
+        else:
+            print('Access Denied for', username)
+            return 'Unauthorised!'   
+    
 
 def menu(usr):
-    if input('1 for creating group, 2 for joining one') == '1':
+    choice = input('1 for creating group, 2 for joining one 3 for viewing info')
+    if choice == '1':
         usr.create_group(input('Name: '), getpass())
-    elif input('1 for creating group, 2 for joining one') == '2':
+    elif choice == '2':
         usr.join_group(input('Name: '), getpass())
+    elif choice == "3":
+        usr.get_nonsens_user_info()

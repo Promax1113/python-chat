@@ -4,26 +4,31 @@ from fernet import Fernet
 import base64
 import utils
 
-key = utils.gen_fernet_key((f'handshake-{base64.encodebytes(socket.gethostname().encode())}').encode())
+key = Fernet.generate_key()
 
 f = Fernet(key)
 
 s = socket.socket()
-print((socket.gethostname(), 6969))
-s.bind(('127.0.0.1', 2133))
+s.bind(('127.0.0.1', 6969))
 
 s.listen(5)
-print(key)
 while True:
-    c, addr = s.accept()
-    print('Connection from:', addr)
-    c.send(bytes("200", 'utf-8'))
-    c.send(str(key).encode())
-    print('bolas')
-    login = c.recv(4096).decode()
-    json.loads(login)
+    try:
+        c, addr = s.accept()
+        print('Connection from:', addr)
+        c.sendall(key)
+        print('sent')
+        data = c.recv(4096)
+        login = f.decrypt(data).decode()
+        print(login)
+        login_dict = json.loads(login)
+        user = utils.login(login_dict['username'], login_dict['password'], addr)
+        if user == 'Unauthorised!':
+            c.sendall(('Unauthorised!').encode())
+        else:
+            c.sendall(('Access Granted!').encode())
 
-    message = json.loads(message)
-    print(message)
-
-    c.close()
+        c.close()
+    except:
+        c.sendall(('Server error!! Warn host about it it!').encode())
+        c.close()
