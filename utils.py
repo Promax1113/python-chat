@@ -1,8 +1,12 @@
 import random
 import os
 import chat_group
-import string
+from getpass import getpass
 import hashlib
+
+
+# TODO Add to server when networking!
+user_list = []
 
 
 class get_group_info:
@@ -17,7 +21,6 @@ get_info_group = get_group_info()
 
 
 def get_userid(__username):
-    global user_list
     user_list.append(__username)
     userid = (user_list.index(__username) + 1)
     user_list.append(userid)
@@ -27,12 +30,13 @@ def get_userid(__username):
 
 def login():
     username = input('Username: ')
-    password = input('Password: ')
+    password = getpass()
     pass_hash: str = hashlib.sha256((username+password).encode()).hexdigest()
-    if not os.listdir('pass.hash'):
+    if not os.path.isfile('pass.hash'):
         with open('pass.hash', 'w') as f:
             f.write(pass_hash)
             f.close()
+        pass_file = pass_hash
     else:
         with open('pass.hash', 'r') as f:
             pass_file = f.readline()
@@ -43,3 +47,8 @@ def login():
         print('Access Denied!')
         login()
 
+def menu(usr):
+    if input('1 for creating group, 2 for joining one') == '1':
+        usr.create_group(input('Name: '), getpass())
+    elif input('1 for creating group, 2 for joining one') == '2':
+        usr.join_group(input('Name: '), getpass())
