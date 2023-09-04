@@ -3,6 +3,7 @@ import os
 import chat_group
 from getpass import getpass
 import hashlib
+import json
 
 
 # TODO Add to server when networking!
@@ -72,11 +73,24 @@ def login(username = None, password = None, ip_address = None):
             return 'Unauthorised!'   
     
 
-def menu(usr):
-    choice = input('1 for creating group, 2 for joining one 3 for viewing info')
-    if choice == '1':
-        usr.create_group(input('Name: '), getpass())
-    elif choice == '2':
-        usr.join_group(input('Name: '), getpass())
-    elif choice == "3":
-        usr.get_nonsens_user_info()
+def menu(usr, C_socket = None):
+    print(C_socket)
+    if C_socket == None:
+        choice = input('1 for creating group, 2 for joining one 3 for viewing info')
+        if choice == '1':
+            usr.create_group(input('Name: '), getpass())
+        elif choice == '2':
+            usr.join_group(input('Name: '), getpass())
+        elif choice == "3":
+            usr.get_nonsens_user_info()
+    else:
+        C_socket.sendall(('1 for creating group, 2 for joining one 3 for viewing info:').encode())
+        response = C_socket.recv(4096).decode()
+        print('Sent!')
+        if response == '1':
+            C_socket.sendall(usr.create_group(input('Name: '), getpass()))
+        elif response == '2':
+            C_socket.sendall(usr.join_group(input('Name: '), getpass()))
+        elif response == "3":
+            C_socket.sendall(json.dumps(usr.get_nonsens_user_info()).encode())
+        
