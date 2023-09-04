@@ -22,7 +22,7 @@ class _group:
         return {'name': self.name, 'author': self.__author, 'user_list': self.user_list, 'join_message': self.__join_message}
 
 class user:
-    def __init__(self, username: str, userid: int):
+    def __init__(self, username: str, userid: int, address: str):
         self.__username = username
         self.__userid = userid
         self.__owned_groups = []

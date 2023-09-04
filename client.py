@@ -1,14 +1,13 @@
 import socket
-from fernet import Fernet
 import utils
 
-key = Fernet(Fernet.generate_key())
 
 s = socket.socket()
 
-s.connect(('127.0.0.1', 6969))
 
-user = utils.login()
-
-s.send(str(user.get_nonsens_user_info()).replace("'", '"').encode())
+s.connect(('127.0.0.1', 5550))
+message = s.recv(4096).decode()
+key = s.recv(4096).decode()
+print(key)
+print('Bolas')
 s.close()

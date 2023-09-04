@@ -1,4 +1,4 @@
-import random
+import base64
 import os
 import chat_group
 from getpass import getpass
@@ -7,6 +7,12 @@ import hashlib
 
 # TODO Add to server when networking!
 user_list = []
+
+def gen_fernet_key(passcode: bytes) -> bytes:
+    assert isinstance(passcode, bytes)
+    hlib = hashlib.md5()
+    hlib.update(passcode)
+    return base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
 
 
 class get_group_info:
