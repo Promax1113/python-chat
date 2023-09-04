@@ -74,7 +74,6 @@ def login(username = None, password = None, ip_address = None):
     
 
 def menu(usr, C_socket = None):
-    print(C_socket)
     if C_socket == None:
         choice = input('1 for creating group, 2 for joining one 3 for viewing info')
         if choice == '1':
@@ -86,7 +85,6 @@ def menu(usr, C_socket = None):
     else:
         C_socket.sendall(('1 for creating group, 2 for joining one 3 for viewing info:').encode())
         response = C_socket.recv(4096).decode()
-        print('Sent!')
         if response == '1':
             C_socket.sendall(usr.create_group(input('Name: '), getpass()))
         elif response == '2':

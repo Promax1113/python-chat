@@ -8,9 +8,11 @@ import json
 
 
 s = socket.socket()
+ip = '127.0.0.1'
+port = 6969
 
 try:
-    s.connect(('127.0.0.1', 6969))
+    s.connect((ip, port))
 except:
     print("Connection refused or host not online!")
     exit(1)
