@@ -16,7 +16,7 @@ def connect(ip: str, port: int):
         if tries <= 5:
             print('Host possibly offline, now retrying...')
             tries += 1
-            time.sleep(1.0)
+            time.sleep(2)
             connect(ip, port)
             
         else:
@@ -26,19 +26,23 @@ def login():
     data = ''
     while not data:
         data = client.recv(4096)
-    f = Fernet(data)
-    token = f.encrypt(json.dumps({'username': input('Username: '), 'password': getpass()}))
-    client.sendall(token)
-    data = ''
-    while not data:
-        data = client.recv(4096).decode()
-    try:
-        print('Connected users', json.loads(data)['connected_users'])
-    except:
-        print(data)
+    data = json.loads(data)
+    if data['authed'] == True:
+        return None
+    else:
+        f = Fernet(data['key'].encode())
+        token = f.encrypt(json.dumps({'username': input('Username: '), 'password': getpass()}))
+        client.sendall(token)
+        data = ''
+        while not data:
+            data = client.recv(4096).decode()
+        try:
+            print('Connected users', json.loads(data)['connected_users'])
+        except:
+            print(data)
     
 if __name__ == '__main__':
-    connect('192.168.1.50', 585)
+    connect('127.0.0.1', 585)
     print('Connected to server!')
     login()
 

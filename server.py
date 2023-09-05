@@ -1,4 +1,5 @@
     # TODO Aiming for the client to request or post not server send client stuff!
+    # ! Duplicated user_list[] utils.py and this file
 from fernet import Fernet
 from socket import *
 import json
@@ -8,14 +9,16 @@ s = socket()
 user_list = []
 
 class client:
-    def __init__(self, socket_obj: object):
+    def __init__(self, socket_obj: object, auth = False):
         self.__client = socket_obj
-        self.__auth = False
+        self.__auth = auth
         self.__username = 'Undefined'
     
     def login(self):
         key = Fernet.generate_key()
-        self.__client.sendall(key)
+        self.__client.sendall(json.dumps({'key': key.decode(), 'authed': self.__auth}).encode())
+        if self.__auth == True:
+            return None
         f = Fernet(key)
         login = self.__client.recv(4096)
         while not login:
@@ -49,15 +52,14 @@ if __name__ == '__main__':
         c, addr = s.accept()
         print('Connection Received from:', addr, 'Accepting...')
         address_list = [name.get_nonsens_user_info()['address'] for name in user_list]
-        print(address_list, addr[0], addr[0] in address_list)
-        if addr[0] in address_list:
-            usr_index = address_list.index(addr)
+        ip = addr[0]
+        if ip in address_list:
+            usr_index = address_list.index(ip)
             authed_user = user_list[usr_index]
-            print(address_list, usr_index, user_list, user_list[usr_index].get_nonsens_user_info())
-            
+            client(c, True).login()
+        else:
+            authed_user = client(c).login()
         
-        authed_user = client(c).login()
-
         if len(user_list) + 1 >= 10:
             authed_user.send('Server full!')
         else:
