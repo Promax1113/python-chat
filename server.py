@@ -59,6 +59,5 @@ if __name__ == '__main__':
                 logout(authed_user)
 
             else:
-                print('wtf',authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list])
                 user_list.append(authed_user)
                 authed_user.send(json.dumps({'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
