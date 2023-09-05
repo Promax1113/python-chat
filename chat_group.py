@@ -37,7 +37,7 @@ class user:
         self.__joined_groups.append({'name': group_chat.name, 'obj': group_chat})
         group_list.append({'name': group_chat.name, 'obj': group_chat})
         return group_chat.name
-
+    
     def join_group(self, name: str, password: str):
         chat_to_join = 'undefined'
         for chat in group_list:
@@ -55,6 +55,9 @@ class user:
         else:
             print('Incorrect password!!')
 
+    def set_new_socket(self, socket):
+        self.__client = socket
+
     def send(self, message, encode: bool= True):
         if encode:
             self.__client.sendall(message.encode())
@@ -67,4 +70,4 @@ class user:
         
 
     def get_nonsens_user_info(self):
-        return {"username": self.__username, "userid": self.__userid, "owned_groups": self.__owned_groups, "joined_groups": self.__joined_groups}
+        return {"username": self.__username, "address": self.__address, "userid": self.__userid, "owned_groups": self.__owned_groups, "joined_groups": self.__joined_groups}

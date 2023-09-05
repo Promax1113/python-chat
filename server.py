@@ -43,12 +43,18 @@ def logout(usr):
     
 if __name__ == '__main__':
     print('Starting server...')
-    server_setup('127.0.0.1', 585)
+    server_setup('', 585)
 
     while True:
         c, addr = s.accept()
-        
         print('Connection Received from:', addr, 'Accepting...')
+        address_list = [name.get_nonsens_user_info()['address'] for name in user_list]
+        if addr in address_list:
+            usr_index = address_list.index(addr)
+            authed_user = user_list[usr_index]
+            print(address_list, usr_index, user_list, user_list[usr_index].get_nonsens_user_info())
+            
+        
         authed_user = client(c).login()
 
         if len(user_list) + 1 >= 10:
