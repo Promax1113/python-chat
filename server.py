@@ -25,7 +25,7 @@ class client:
         self.__username = login['username']
         # TODO Check if the password matches
         self.__auth = True
-        return chat_group.user(self.__username, utils.get_userid(self.__username), self.__client.getsockname(), self.__client)
+        return chat_group.user(self.__username, utils.get_userid(self.__username), self.__client.getpeername()[0], self.__client)
     
 
 
@@ -49,8 +49,8 @@ if __name__ == '__main__':
         c, addr = s.accept()
         print('Connection Received from:', addr, 'Accepting...')
         address_list = [name.get_nonsens_user_info()['address'] for name in user_list]
-        print(address_list)
-        if addr in address_list:
+        print(address_list, addr[0], addr[0] in address_list)
+        if addr[0] in address_list:
             usr_index = address_list.index(addr)
             authed_user = user_list[usr_index]
             print(address_list, usr_index, user_list, user_list[usr_index].get_nonsens_user_info())

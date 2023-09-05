@@ -2,6 +2,7 @@ from socket import *
 from fernet import Fernet
 import json
 from getpass import getpass
+import time
 
 client: object = socket()
 tries: int = 0
@@ -15,7 +16,9 @@ def connect(ip: str, port: int):
         if tries <= 5:
             print('Host possibly offline, now retrying...')
             tries += 1
-            connect()
+            time.sleep(1.0)
+            connect(ip, port)
+            
         else:
             print('Retried 5 times, no response. Quitting...')
             exit(1)
@@ -35,7 +38,7 @@ def login():
         print(data)
     
 if __name__ == '__main__':
-    connect('127.0.0.1', 585)
+    connect('192.168.1.50', 585)
     print('Connected to server!')
     login()
 
