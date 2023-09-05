@@ -6,6 +6,7 @@ import hashlib
 import json
 
 
+
 # TODO Add to server when networking!
 user_list = []
 
@@ -73,7 +74,7 @@ def login(username = None, password = None, ip_address = None):
             return 'Unauthorised!'   
     
 
-def menu(usr, C_socket = None):
+def menu(usr, C_socket = None, fernet_key = None):
     if C_socket == None:
         choice = input('1 for creating group, 2 for joining one 3 for viewing info')
         if choice == '1':
@@ -90,5 +91,7 @@ def menu(usr, C_socket = None):
         elif response == '2':
             C_socket.sendall(usr.join_group(input('Name: '), getpass()))
         elif response == "3":
-            C_socket.sendall(json.dumps(usr.get_nonsens_user_info()).encode())
-        
+            print(fernet_key.encrypt(json.dumps(usr.get_nonsens_user_info()).encode()))
+            C_socket.sendall(fernet_key.encrypt(json.dumps(usr.get_nonsens_user_info()).encode()))
+        else:
+            return 'Invalid'
