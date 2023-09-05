@@ -43,12 +43,13 @@ def logout(usr):
     
 if __name__ == '__main__':
     print('Starting server...')
-    server_setup('', 585)
+    server_setup('127.0.0.1', 585)
 
     while True:
         c, addr = s.accept()
         print('Connection Received from:', addr, 'Accepting...')
         address_list = [name.get_nonsens_user_info()['address'] for name in user_list]
+        print(address_list)
         if addr in address_list:
             usr_index = address_list.index(addr)
             authed_user = user_list[usr_index]

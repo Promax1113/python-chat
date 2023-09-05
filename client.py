@@ -35,7 +35,7 @@ def login():
         print(data)
     
 if __name__ == '__main__':
-    connect('192.168.1.50', 585)
+    connect('127.0.0.1', 585)
     print('Connected to server!')
     login()
 
