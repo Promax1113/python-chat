@@ -5,7 +5,8 @@ from socket import *
 import json
 import chat_group, utils
 from security_utils import password_check
-import os
+import os, time, hashlib, base64
+
 s = socket()
 user_list = []
 
@@ -37,7 +38,11 @@ class client:
         self.__auth = True
         return chat_group.user(self.__username, utils.get_userid(self.__username), self.__client.getpeername()[0], self.__client, self.__auth)
     
-
+def gen_fernet_key(passcode: bytes) -> bytes:
+    assert isinstance(passcode, bytes)
+    hlib = hashlib.md5()
+    hlib.update(passcode)
+    return base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
 
 def server_setup(ip: str, port: int):
     address = (ip, port)
@@ -76,10 +81,12 @@ if __name__ == '__main__':
             if authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list] and not authed_user.get_auth():
                 authed_user.send("\nCan't login with 2 sessions! / Username already taken!\n")
                 logout(authed_user, invalid=True)
-
+            
             else:
                 if not authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list]:
                     user_list.append(authed_user)
                     authed_user.send(json.dumps({'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
                 else:
+                    print('bALLS')
+                    time.sleep(2)
                     authed_user.send(f"Hello! {authed_user.get_nonsens_user_info()['username']}")
