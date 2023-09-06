@@ -22,13 +22,14 @@ class _group:
         return {'name': self.name, 'author': self.__author, 'user_list': self.user_list, 'join_message': self.__join_message}
 
 class user:
-    def __init__(self, username: str, userid: int, address: str, socket_obj):
+    def __init__(self, username: str, userid: int, address: str, socket_obj: object, auth: bool):
         self.__username = username
         self.__client = socket_obj
         self.__userid = userid
         self.__owned_groups = []
         self.__joined_groups = []
         self.__address: str = address
+        self.__auth = auth
 
     def create_group(self, name: str, password: str):
         __group_hash = hashlib.sha256(f'{name}{password}'.encode('utf-8')).hexdigest()
@@ -60,14 +61,18 @@ class user:
 
     def send(self, message, encode: bool= True):
         if encode:
+            print('tried!')
             self.__client.sendall(message.encode())
+            print('Balls')
         else:
             self.__client.sendall(message)
 
     def _logout(self):
         self.__client.sendall('Logging out...'.encode())
         self.__client.close()
-        
+    
+    def get_auth(self):
+        return self.__auth
 
     def get_nonsens_user_info(self):
         return {"username": self.__username, "address": self.__address, "userid": self.__userid, "owned_groups": self.__owned_groups, "joined_groups": self.__joined_groups}

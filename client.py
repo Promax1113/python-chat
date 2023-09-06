@@ -7,6 +7,20 @@ import time
 client: object = socket()
 tries: int = 0
 
+def receive(socket: object, timeout: float):
+    data = ''
+    print('started receiving!')
+    start = time.time()
+    while not data:
+        time.sleep(1)
+        data = socket.recv(4096).decode()
+        end = time.time()
+        if round(end - start) >= timeout:
+            print('Timeout exceeded for data tranfer!')
+            exit(1)
+    return data
+
+
 # TODO make it configurable!
 def connect(ip: str, port: int):
     global client, tries
@@ -28,6 +42,9 @@ def login():
         data = client.recv(4096)
     data = json.loads(data)
     if data['authed'] == True:
+        print(f"Logged in as {data['username']}")
+        data = receive(client, 3)
+        print(data)
         return None
     else:
         f = Fernet(data['key'].encode())
