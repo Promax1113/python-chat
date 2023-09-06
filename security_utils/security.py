@@ -1,5 +1,5 @@
 import hashlib, os
-def folder_check(username):
+def folder_check(username: str):
     userpath = os.getcwd()
     filepath = f'{userpath}/user_info/{username}.hash'
     
@@ -10,22 +10,31 @@ def folder_check(username):
             f.close()
         return None
     else:
-        with open(filepath, 'r+') as f:
-            return f.readline()
+        with open(filepath, 'r+') as f: 
+            data = f.readline()
+            f.close()
+            return data
 
 
-def save_password(hash, username):   
-    #TODO Save Password! 
-    pass
+def save_password(hash: str, username: str):   
+    userpath = os.getcwd()
+    filepath = f'{userpath}/user_info/{username}.hash'
+    with open(filepath, 'w+') as f:
+        f.write(hash)
+        f.close()
 
-def password_check(username, password):
-    hashed_pass = hashlib.sha256((username + password).encode())
+def password_check(username: str, password: str):
+    hashed_pass = hashlib.sha256((username + password).encode()).hexdigest()
     hashfile_data = folder_check(username)
     if not hashfile_data:
         print('Saving pasword as it is the first time!')
-        # TODO call password saver!
+        save_password(hashed_pass, username)
+        print('Success!')
+        return 200
     else:
-        if hashed_pass == hashfile_data: return 200 
-        else: return 401
-    
-print(password_check('balls', 'baller'))
+        if hashed_pass == hashfile_data: 
+            print('Success!')
+            return 200 
+        else:
+            print('Unauthorised!') 
+            return 401

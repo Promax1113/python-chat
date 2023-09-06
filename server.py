@@ -5,7 +5,7 @@ from socket import *
 import json
 import chat_group, utils
 from security_utils import password_check
-
+import os
 s = socket()
 user_list = []
 
@@ -18,7 +18,6 @@ class client:
     
     def login(self):
         key = Fernet.generate_key()
-        print(self.__auth)
         if not self.__old_client == None:
             self.__client.sendall(json.dumps({'key': key.decode(), 'authed': self.__auth, 'username': self.__old_client.get_nonsens_user_info()['username']}).encode())
         else:
@@ -46,8 +45,10 @@ def server_setup(ip: str, port: int):
     s.bind(address)
     s.listen(5)
 
-def logout(usr):
+def logout(usr, invalid = False):
     global user_list
+    if invalid:
+        os.remove(f"{os.getcwd()}/user_data/{usr.get_nonsens_user_info()['username']}.hash")
     usr._logout()
     print('Invalid login from:', usr.get_nonsens_user_info()['username'] + ", With user id:", usr.get_nonsens_user_info()['userid'])
     
@@ -64,8 +65,6 @@ if __name__ == '__main__':
         if ip in address_list:
             usr_index = address_list.index(ip)
             authed_user = user_list[usr_index]
-            print(authed_user)
-            print(authed_user.get_nonsens_user_info())
             authed_user.set_new_socket(c)
             client(c, True, authed_user).login()
         else:
@@ -75,13 +74,12 @@ if __name__ == '__main__':
             authed_user.send('Server full!')
         else:
             if authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list] and not authed_user.get_auth():
-                authed_user.send("\nCan't login with 2 sessions!\n")
-                logout(authed_user)
+                authed_user.send("\nCan't login with 2 sessions! / Username already taken!\n")
+                logout(authed_user, invalid=True)
 
             else:
                 if not authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list]:
                     user_list.append(authed_user)
                     authed_user.send(json.dumps({'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
                 else:
-                    print('tried sending!')
                     authed_user.send(f"Hello! {authed_user.get_nonsens_user_info()['username']}")
