@@ -4,6 +4,7 @@ from fernet import Fernet
 from socket import *
 import json
 import chat_group, utils
+from security_utils import password_check
 
 s = socket()
 user_list = []
@@ -33,7 +34,7 @@ class client:
         login = f.decrypt(login).decode()
         login = json.loads(login)
         self.__username = login['username']
-        # TODO Check if the password matches
+        password_check(login['username'], login['password'])
         self.__auth = True
         return chat_group.user(self.__username, utils.get_userid(self.__username), self.__client.getpeername()[0], self.__client, self.__auth)
     

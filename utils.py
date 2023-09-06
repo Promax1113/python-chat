@@ -54,7 +54,7 @@ def login(username = None, password = None, ip_address = None):
             return chat_group.user(username, get_userid(username), ip_address)
         else:
             print('Access Denied!')
-            login
+            login()
     else:
         pass_hash: str = hashlib.sha256(bytes(f"{username}{password}", 'utf-8')).hexdigest()
         userid = get_userid(username)
