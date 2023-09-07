@@ -32,7 +32,6 @@ class client:
         while not login:
             login = self.__client.recv(4096)
         login = f.decrypt(login).decode()
-        print(login)
         login = json.loads(login)
         self.__username = login['username']
         result = password_check(login['username'], login['password'])
@@ -75,7 +74,7 @@ if __name__ == '__main__':
         if ip in address_list:
             usr_index = address_list.index(ip)
             authed_user = user_list[usr_index]
-            authed_user.set_new_user_info(c, addr)
+            authed_user.set_new_client_info(c, addr)
             client(c, True, authed_user).login()
         else:
             authed_user = client(c).login()
@@ -92,6 +91,5 @@ if __name__ == '__main__':
                     user_list.append(authed_user)
                     authed_user.send(json.dumps({'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
                 else:
-                    print('bALLS')
                     time.sleep(2)
                     authed_user.send(f"Hello! {authed_user.get_nonsens_user_info()['username']}")

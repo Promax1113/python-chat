@@ -28,12 +28,18 @@ def receive(socket: object, timeout: float, fernet: object = None):
             print('Timeout exceeded for data tranfer!')
             exit(1)
         return data
-def send(socket: object, message: str, fernet: object, encode: bool = True):
+def send(socket: object, message: str, fernet: object = None, encode: bool = True):
     # TODO Add encryption to comunication
     if encode:
-        socket.sendall(fernet.encrypt(message.encode()))
+        if not fernet:
+            socket.sendall(message.encode())
+        else:
+            socket.sendall(fernet.encrypt(message.encode()))
     else:
-        socket.sendall(fernet.encrypt(message))
+        if not fernet:
+            socket.sendall(message)
+        else:
+            socket.sendall(fernet.encrypt(message))
 
 # TODO make it configurable!
 def connect(ip: str, port: int):
@@ -52,18 +58,17 @@ def connect(ip: str, port: int):
             exit(1)
 def login():
     data = receive(client, 10)
-    print(data)
     data = json.loads(data)
     if data['authed'] == True:
         print(f"Logged in as {data['username']}")
-        data = receive(client, 3)
+        data = receive(client, 5)
         print(data)
         return None
     else:
         f = Fernet(data['key'].encode())
-        token = f.encrypt(json.dumps({'username': input('Username: '), 'password': getpass()}))
-        send(socket=client, message=token, fernet=f, encode=False)
-        data = receive(client, 10)
+        send(socket=client, message=json.dumps({'username': input('Username: '), 'password': getpass()}), fernet=f, encode=False)
+        data = receive(client, 10, f)
+        print(data)
         try:
             print('Connected users', json.loads(data)['connected_users'])
         except:

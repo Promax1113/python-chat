@@ -89,7 +89,7 @@ class user:
         self.__client.sendall('Logging out...'.encode())
         self.__client.close()
     
-    def get_auth(self):
+    def get_auth(self) -> bool:
         return self.__auth
 
     def get_nonsens_user_info(self):
