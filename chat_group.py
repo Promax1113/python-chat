@@ -1,4 +1,5 @@
-import hashlib
+import hashlib, time
+from fernet import Fernet
 
 group_list = []
 
@@ -22,7 +23,7 @@ class _group:
         return {'name': self.name, 'author': self.__author, 'user_list': self.user_list, 'join_message': self.__join_message}
 
 class user:
-    def __init__(self, username: str, userid: int, address: str, socket_obj: object, auth: bool):
+    def __init__(self, username: str, userid: int, address: str, socket_obj: object, auth: bool, fernet_key: bytes):
         self.__username = username
         self.__client = socket_obj
         self.__userid = userid
@@ -30,6 +31,7 @@ class user:
         self.__joined_groups = []
         self.__address: str = address
         self.__auth = auth
+        self.__key = Fernet(fernet_key)
 
     def create_group(self, name: str, password: str):
         __group_hash = hashlib.sha256(f'{name}{password}'.encode('utf-8')).hexdigest()
@@ -56,16 +58,32 @@ class user:
         else:
             print('Incorrect password!!')
 
-    def set_new_socket(self, socket):
+    def set_new_client_info(self, socket: object, address):
         self.__client = socket
+        self.__address = address
 
-    def send(self, message, encode: bool= True):
+    def send(self, message: str, encode: bool = True):
+    # TODO Add encryption to comunication
         if encode:
-            print('tried!')
-            self.__client.sendall(message.encode())
-            print('Balls')
+            self.__client.sendall(self.__key.encrypt(message.encode()))
         else:
-            self.__client.sendall(message)
+            self.__client.sendall(self.__key.encrypt(message))
+    
+    def receive(self, timeout: float):
+        data = ''
+        start = time.time()
+        while not data:
+            time.sleep(1)
+            data = self.__client.recv(4096)
+            data = self.__key.decrypt(data).decode
+            end = time.time()
+            if round(end - start) >= timeout:
+                print('Timeout exceeded for data tranfer!')
+                exit(1)
+            return data
+
+    def get_key(self):
+        return self.__key
 
     def _logout(self):
         self.__client.sendall('Logging out...'.encode())

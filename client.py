@@ -13,22 +13,27 @@ def gen_fernet_key(passcode: bytes) -> bytes:
     hlib.update(passcode)
     return base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
 
-def receive(socket: object, timeout: float):
+def receive(socket: object, timeout: float, fernet: object = None):
     data = ''
     start = time.time()
     while not data:
         time.sleep(1)
-        data = socket.recvfrom(4096)
-        message = data[0].decode()
-        raddr = data[1]
+        data = socket.recv(4096)
+        if not fernet:
+            data = data.decode()
+        else:
+            data = fernet.decrypt(data).decode()
         end = time.time()
         if round(end - start) >= timeout:
             print('Timeout exceeded for data tranfer!')
             exit(1)
-    return {'raddr': raddr, 'data': message}
-def send(socket: object):
+        return data
+def send(socket: object, message: str, fernet: object, encode: bool = True):
     # TODO Add encryption to comunication
-    pass
+    if encode:
+        socket.sendall(fernet.encrypt(message.encode()))
+    else:
+        socket.sendall(fernet.encrypt(message))
 
 # TODO make it configurable!
 def connect(ip: str, port: int):
@@ -46,22 +51,24 @@ def connect(ip: str, port: int):
             print('Retried 5 times, no response. Quitting...')
             exit(1)
 def login():
-    data = receive(client, 10)['data']
+    data = receive(client, 10)
     print(data)
     data = json.loads(data)
     if data['authed'] == True:
         print(f"Logged in as {data['username']}")
-        data = receive(client, 3)['data']
+        data = receive(client, 3)
         print(data)
         return None
     else:
         f = Fernet(data['key'].encode())
         token = f.encrypt(json.dumps({'username': input('Username: '), 'password': getpass()}))
-        client.sendall(token)
-        data = receive(client, 10)['data']
+        send(socket=client, message=token, fernet=f, encode=False)
+        data = receive(client, 10)
         try:
             print('Connected users', json.loads(data)['connected_users'])
         except:
+            if data == '401':
+                print('Unauthorised!')
             print(data)
     
 if __name__ == '__main__':

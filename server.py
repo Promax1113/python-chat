@@ -32,12 +32,17 @@ class client:
         while not login:
             login = self.__client.recv(4096)
         login = f.decrypt(login).decode()
+        print(login)
         login = json.loads(login)
         self.__username = login['username']
-        password_check(login['username'], login['password'])
-        self.__auth = True
-        return chat_group.user(self.__username, utils.get_userid(self.__username), self.__client.getpeername()[0], self.__client, self.__auth)
-    
+        result = password_check(login['username'], login['password'])
+        if result == 200:
+            self.__auth = True
+            return chat_group.user(self.__username, utils.get_userid(self.__username), self.__client.getpeername()[0], self.__client, self.__auth, fernet_key=key)
+        else:
+            self.__client.sendall('401'.encode())
+            logout(chat_group.user(self.__username, -1, None, self.__client, False, fernet_key=key), False)
+            
 def gen_fernet_key(passcode: bytes) -> bytes:
     assert isinstance(passcode, bytes)
     hlib = hashlib.md5()
@@ -70,7 +75,7 @@ if __name__ == '__main__':
         if ip in address_list:
             usr_index = address_list.index(ip)
             authed_user = user_list[usr_index]
-            authed_user.set_new_socket(c)
+            authed_user.set_new_user_info(c, addr)
             client(c, True, authed_user).login()
         else:
             authed_user = client(c).login()
