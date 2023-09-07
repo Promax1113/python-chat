@@ -6,12 +6,24 @@ import time, hashlib, base64
 
 client: object = socket()
 tries: int = 0
+sent_messages = []
+
+class message:
+    def __init__(self, author: str, recipient: str, content: str) -> None:
+        self.__from_username = author
+        self.__to_username = recipient
+        self.__content = content
+
+    def get_data(self) -> dict:
+        return {'from': self.__from_username, 'to': self.__to_username, 'content': self.__content}
+
 
 def gen_fernet_key(passcode: bytes) -> bytes:
     assert isinstance(passcode, bytes)
     hlib = hashlib.md5()
     hlib.update(passcode)
     return base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
+
 
 def receive(socket: object, timeout: float, fernet: object = None):
     data = ''
@@ -66,7 +78,8 @@ def login():
         return None
     else:
         f = Fernet(data['key'].encode())
-        send(socket=client, message=json.dumps({'username': input('Username: '), 'password': getpass()}), fernet=f, encode=False)
+        login_data = json.dumps({'username': input('Username: '), 'password': getpass()})
+        send(socket=client, message=login_data, fernet=f, encode=False)
         data = receive(client, 10, f)
         print(data)
         try:
@@ -75,9 +88,18 @@ def login():
             if data == '401':
                 print('Unauthorised!')
             print(data)
-    
+        return (login_data['username'], f)
+def messaging(key):
+    global username
+    msg = message(username, input('Username of the recipient (case sensitive): '), input('Message to send: '))
+    sent_messages.append(msg)
+    if input('Send? (y/N): ').lower() == 'y':
+        send(client, json.dumps(msg.get_data()), key, True)
 if __name__ == '__main__':
     connect('127.0.0.1', 585)
     print('Connected to server!')
-    login()
+    result = login()
+    fernet_obj = result[1]
+    username = result[0]
+    messaging(fernet_obj)
 
