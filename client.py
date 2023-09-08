@@ -2,7 +2,7 @@ from socket import *
 from fernet import Fernet
 import json
 from getpass import getpass
-import time, hashlib, base64
+import time, hashlib, base64, datetime
 
 client: object = socket()
 tries: int = 0
@@ -13,9 +13,10 @@ class message:
         self.__from_username = author
         self.__to_username = recipient
         self.__content = content
+        self.__timestamp = datetime.datetime.now()
 
     def get_data(self) -> dict:
-        return {'from': self.__from_username, 'to': self.__to_username, 'content': self.__content}
+        return {'timestamp': self.__timestamp.strftime('%Y/%m/%d-%H:%M:%S'), 'from': self.__from_username, 'to': self.__to_username, 'content': self.__content}
 
 
 def gen_fernet_key(passcode: bytes) -> bytes:
@@ -78,7 +79,8 @@ def login():
         return None
     else:
         f = Fernet(data['key'].encode())
-        login_data = json.dumps({'username': input('Username: '), 'password': getpass()})
+        input_data = {'username': input('Username: '), 'password': getpass()}
+        login_data = json.dumps(input_data)
         send(socket=client, message=login_data, fernet=f, encode=False)
         data = receive(client, 10, f)
         print(data)
@@ -88,18 +90,18 @@ def login():
             if data == '401':
                 print('Unauthorised!')
             print(data)
-        return (login_data['username'], f)
+        return {'username': input_data['username'], 'key': f}
 def messaging(key):
     global username
     msg = message(username, input('Username of the recipient (case sensitive): '), input('Message to send: '))
     sent_messages.append(msg)
     if input('Send? (y/N): ').lower() == 'y':
-        send(client, json.dumps(msg.get_data()), key, True)
+        send(client, message=json.dumps(msg.get_data()), fernet=key, encode=True)
 if __name__ == '__main__':
     connect('127.0.0.1', 585)
     print('Connected to server!')
     result = login()
-    fernet_obj = result[1]
-    username = result[0]
+    fernet_obj = result['key']
+    username = result['username']
     messaging(fernet_obj)
 
