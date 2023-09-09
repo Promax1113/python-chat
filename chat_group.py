@@ -69,13 +69,13 @@ class user:
         else:
             self.__client.sendall(self.__key.encrypt(message))
     
-    def receive(self, timeout: float):
+    def receive(self, timeout: float = 600):
         data = ''
         start = time.time()
         while not data:
             time.sleep(1)
             data = self.__client.recv(4096)
-            data = self.__key.decrypt(data).decode
+            data = self.__key.decrypt(data).decode()
             end = time.time()
             if round(end - start) >= timeout:
                 print('Timeout exceeded for data tranfer!')
@@ -85,7 +85,9 @@ class user:
     def get_key(self):
         return self.__key
 
-    def _logout(self):
+    
+
+    def logout(self):
         self.__client.sendall('Logging out...'.encode())
         self.__client.close()
     

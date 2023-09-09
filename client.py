@@ -2,16 +2,31 @@ from socket import *
 from fernet import Fernet
 import json
 from getpass import getpass
-import time, hashlib, base64
+import time, hashlib, base64, datetime
 
 client: object = socket()
 tries: int = 0
+sent_messages = []
+
+
+class message:
+    def __init__(self, author: str, recipient: str, content: str) -> None:
+        self.__from_username = author
+        self.__to_username = recipient
+        self.__content = content
+        self.__timestamp = datetime.datetime.now()
+
+    def get_data(self) -> dict:
+        return {'timestamp': self.__timestamp.strftime('%Y/%m/%d-%H:%M:%S'), 'from': self.__from_username,
+                'to': self.__to_username, 'content': self.__content}
+
 
 def gen_fernet_key(passcode: bytes) -> bytes:
     assert isinstance(passcode, bytes)
     hlib = hashlib.md5()
     hlib.update(passcode)
     return base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
+
 
 def receive(socket: object, timeout: float, fernet: object = None):
     data = ''
@@ -28,6 +43,8 @@ def receive(socket: object, timeout: float, fernet: object = None):
             print('Timeout exceeded for data tranfer!')
             exit(1)
         return data
+
+
 def send(socket: object, message: str, fernet: object = None, encode: bool = True):
     # TODO Add encryption to comunication
     if encode:
@@ -41,6 +58,7 @@ def send(socket: object, message: str, fernet: object = None, encode: bool = Tru
         else:
             socket.sendall(fernet.encrypt(message))
 
+
 # TODO make it configurable!
 def connect(ip: str, port: int):
     global client, tries
@@ -52,32 +70,55 @@ def connect(ip: str, port: int):
             tries += 1
             time.sleep(2)
             connect(ip, port)
-            
+
         else:
             print('Retried 5 times, no response. Quitting...')
             exit(1)
+
+
 def login():
     data = receive(client, 10)
     data = json.loads(data)
     if data['authed'] == True:
         print(f"Logged in as {data['username']}")
-        data = receive(client, 5)
-        print(data)
-        return None
+        _data = receive(client, 5)
+        print(_data)
+        return data
     else:
         f = Fernet(data['key'].encode())
-        send(socket=client, message=json.dumps({'username': input('Username: '), 'password': getpass()}), fernet=f, encode=False)
+        user_info = {'username': input('Username: '), 'password': getpass()}
+        login_data = json.dumps(user_info)
+        send(socket=client, message=login_data, fernet=f, encode=False)
         data = receive(client, 10, f)
-        print(data)
         try:
             print('Connected users', json.loads(data)['connected_users'])
         except:
             if data == '401':
                 print('Unauthorised!')
-            print(data)
-    
-if __name__ == '__main__':
-    connect('127.0.0.1', 585)
-    print('Connected to server!')
-    login()
+                client.close()
+            print(data, 'balls')
+            return {'username': 'Undefined', 'key': f}
+        return {'username': user_info['username'], 'key': f}
 
+
+def messaging(key):
+    global username
+    msg = message(username, input('Username of the recipient (case sensitive): '), input('Message to send: '))
+    sent_messages.append(msg)
+    print(msg.get_data())
+    if input('Send? (y/N): ').lower() == 'y':
+        send(client, json.dumps(msg.get_data()), key, True)
+    data = ''
+    while not data:
+        data = receive(client, 10, key)
+    data = json.loads(data)
+    print(f"Message from {data['from']}. Message: {data['content']}")
+
+
+if __name__ == '__main__':
+    connect('192.168.1.50', 585)
+    print('Connected to server!')
+    result = login()
+    fernet_obj = result['key']
+    username = result['username']
+    messaging(fernet_obj)
