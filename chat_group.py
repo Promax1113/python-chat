@@ -87,7 +87,7 @@ class user:
 
     
 
-    def _logout(self):
+    def logout(self):
         self.__client.sendall('Logging out...'.encode())
         self.__client.close()
     

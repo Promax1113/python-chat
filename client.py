@@ -8,6 +8,7 @@ client: object = socket()
 tries: int = 0
 sent_messages = []
 
+
 class message:
     def __init__(self, author: str, recipient: str, content: str) -> None:
         self.__from_username = author
@@ -16,7 +17,8 @@ class message:
         self.__timestamp = datetime.datetime.now()
 
     def get_data(self) -> dict:
-        return {'timestamp': self.__timestamp.strftime('%Y/%m/%d-%H:%M:%S'), 'from': self.__from_username, 'to': self.__to_username, 'content': self.__content}
+        return {'timestamp': self.__timestamp.strftime('%Y/%m/%d-%H:%M:%S'), 'from': self.__from_username,
+                'to': self.__to_username, 'content': self.__content}
 
 
 def gen_fernet_key(passcode: bytes) -> bytes:
@@ -41,6 +43,8 @@ def receive(socket: object, timeout: float, fernet: object = None):
             print('Timeout exceeded for data tranfer!')
             exit(1)
         return data
+
+
 def send(socket: object, message: str, fernet: object = None, encode: bool = True):
     # TODO Add encryption to comunication
     if encode:
@@ -54,6 +58,7 @@ def send(socket: object, message: str, fernet: object = None, encode: bool = Tru
         else:
             socket.sendall(fernet.encrypt(message))
 
+
 # TODO make it configurable!
 def connect(ip: str, port: int):
     global client, tries
@@ -65,10 +70,12 @@ def connect(ip: str, port: int):
             tries += 1
             time.sleep(2)
             connect(ip, port)
-            
+
         else:
             print('Retried 5 times, no response. Quitting...')
             exit(1)
+
+
 def login():
     data = receive(client, 10)
     data = json.loads(data)
@@ -92,6 +99,8 @@ def login():
             print(data, 'balls')
             return {'username': 'Undefined', 'key': f}
         return {'username': user_info['username'], 'key': f}
+
+
 def messaging(key):
     global username
     msg = message(username, input('Username of the recipient (case sensitive): '), input('Message to send: '))
@@ -104,11 +113,12 @@ def messaging(key):
         data = receive(client, 10, key)
     data = json.loads(data)
     print(f"Message from {data['from']}. Message: {data['content']}")
+
+
 if __name__ == '__main__':
-    connect('127.0.0.1', 585)
+    connect('192.168.1.50', 585)
     print('Connected to server!')
     result = login()
     fernet_obj = result['key']
     username = result['username']
     messaging(fernet_obj)
-
