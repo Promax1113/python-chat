@@ -2,7 +2,7 @@ from socket import *
 from fernet import Fernet
 import json
 from getpass import getpass
-import time, hashlib, base64
+import time, hashlib, base64, datetime
 
 client: object = socket()
 tries: int = 0
@@ -13,9 +13,10 @@ class message:
         self.__from_username = author
         self.__to_username = recipient
         self.__content = content
+        self.__timestamp = datetime.datetime.now()
 
     def get_data(self) -> dict:
-        return {'from': self.__from_username, 'to': self.__to_username, 'content': self.__content}
+        return {'timestamp': self.__timestamp.strftime('%Y/%m/%d-%H:%M:%S'), 'from': self.__from_username, 'to': self.__to_username, 'content': self.__content}
 
 
 def gen_fernet_key(passcode: bytes) -> bytes:
@@ -107,9 +108,7 @@ if __name__ == '__main__':
     connect('127.0.0.1', 585)
     print('Connected to server!')
     result = login()
-    print(result)
     fernet_obj = result['key']
     username = result['username']
-    print(fernet_obj)
     messaging(fernet_obj)
 
