@@ -73,33 +73,43 @@ def login():
     data = json.loads(data)
     if data['authed'] == True:
         print(f"Logged in as {data['username']}")
-        data = receive(client, 5)
-        print(data)
-        return None
+        _data = receive(client, 5)
+        print(_data)
+        return data
     else:
         f = Fernet(data['key'].encode())
-        login_data = json.dumps({'username': input('Username: '), 'password': getpass()})
+        user_info = {'username': input('Username: '), 'password': getpass()}
+        login_data = json.dumps(user_info)
         send(socket=client, message=login_data, fernet=f, encode=False)
         data = receive(client, 10, f)
-        print(data)
         try:
             print('Connected users', json.loads(data)['connected_users'])
         except:
             if data == '401':
                 print('Unauthorised!')
-            print(data)
-        return (login_data['username'], f)
+                client.close()
+            print(data, 'balls')
+            return {'username': 'Undefined', 'key': f}
+        return {'username': user_info['username'], 'key': f}
 def messaging(key):
     global username
     msg = message(username, input('Username of the recipient (case sensitive): '), input('Message to send: '))
     sent_messages.append(msg)
+    print(msg.get_data())
     if input('Send? (y/N): ').lower() == 'y':
         send(client, json.dumps(msg.get_data()), key, True)
+    data = ''
+    while not data:
+        data = receive(client, 10, key)
+    data = json.loads(data)
+    print(f"Message from {data['from']}. Message: {data['content']}")
 if __name__ == '__main__':
     connect('127.0.0.1', 585)
     print('Connected to server!')
     result = login()
-    fernet_obj = result[1]
-    username = result[0]
+    print(result)
+    fernet_obj = result['key']
+    username = result['username']
+    print(fernet_obj)
     messaging(fernet_obj)
 

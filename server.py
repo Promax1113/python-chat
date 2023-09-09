@@ -61,6 +61,22 @@ def logout(usr, invalid = False):
     usr._logout()
     print('Invalid login from:', usr.get_nonsens_user_info()['username'] + ", With user id:", usr.get_nonsens_user_info()['userid'])
     
+def messaging(usr):
+    while True:
+        print('receiving')
+        usr.get_nonsens_user_info()['username']
+        message = ''
+        while not message:
+            print(message)
+            message = json.loads(usr.receive())
+        print(message)
+        username_list = [name.get_nonsens_user_info()['username'] for name in user_list]
+        if message['to'] in username_list:
+            to_id = username_list.index(message['to'])
+            ruser = user_list[to_id]
+            ruser.send(json.dumps(message))
+        
+        break
     
 if __name__ == '__main__':
     print('Starting server...')
@@ -90,6 +106,7 @@ if __name__ == '__main__':
                 if not authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list]:
                     user_list.append(authed_user)
                     authed_user.send(json.dumps({'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
+                    messaging(authed_user)
                 else:
                     time.sleep(2)
-                    authed_user.send(f"Hello! {authed_user.get_nonsens_user_info()['username']}")
+                    messaging(authed_user)
