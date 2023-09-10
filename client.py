@@ -46,7 +46,6 @@ def receive(socket: object, timeout: float, fernet: object = None):
 
 
 def send(socket: object, message: str, fernet: object = None, encode: bool = True):
-    # TODO Add encryption to comunication
     if encode:
         if not fernet:
             socket.sendall(message.encode())
@@ -78,6 +77,7 @@ def connect(ip: str, port: int):
 
 def login():
     data = receive(client, 10)
+    print(data)
     data = json.loads(data)
     if data['authed'] == True:
         print(f"Logged in as {data['username']}")
@@ -114,11 +114,17 @@ def messaging(key):
     data = json.loads(data)
     print(f"Message from {data['from']}. Message: {data['content']}")
 
+def await_server(key):
+    while True:
+        command_dict = ['send_message', 'get_logged_users']
+        send(client, command_dict[1], key, True)
+        receive(client, 10, key)
 
 if __name__ == '__main__':
-    connect('192.168.1.50', 585)
+    connect('127.0.0.1', 585)
     print('Connected to server!')
     result = login()
     fernet_obj = result['key']
     username = result['username']
-    messaging(fernet_obj)
+    await_server(fernet_obj)
+    

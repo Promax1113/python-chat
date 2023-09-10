@@ -11,7 +11,7 @@ from fernet import Fernet
 
 import chat_group
 import utils
-from utils import password_check
+from utilities import password_check
 
 s = socket()
 user_list = []
@@ -26,10 +26,9 @@ class client:
 
     def login(self):
         key = Fernet.generate_key()
-        if self.__old_client is None:
+        if not self.__old_client is None:
             self.__client.sendall(json.dumps({'key': key.decode(), 'authed': self.__auth,
-                                              'username': self.__old_client.get_nonsens_user_info()[
-                                                  'username']}).encode())
+                                              'username': self.__old_client.get_nonsens_user_info()['username']}).encode())
         else:
             self.__client.sendall(json.dumps({'key': key.decode(), 'authed': self.__auth}).encode())
 
@@ -91,6 +90,16 @@ def messaging(usr):
 
         break
 
+def get_connected_users(usr):
+    global user_list
+    usr.send(json.dumps({'Connected users': user_list}), encode=True)
+    print('Sent connected users to', usr.get_nonsens_user_info()['address'])
+
+def await_command(usr):
+    command_dict = {'send_message': messaging, 'get_logged_users': get_connected_users}
+    while True:
+        data = usr.receive()
+        command_dict.get(data)(usr)
 
 if __name__ == '__main__':
     print('Starting server...')
@@ -122,7 +131,8 @@ if __name__ == '__main__':
                     user_list.append(authed_user)
                     authed_user.send(json.dumps(
                         {'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
-                    messaging(authed_user)
+                    await_command(authed_user)
                 else:
                     time.sleep(2)
-                    messaging(authed_user)
+                    await_command(authed_user)
+                    
