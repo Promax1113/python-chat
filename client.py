@@ -129,6 +129,6 @@ if __name__ == '__main__':
     result = login()
     fernet_obj = result['key']
     username = result['username']
-    print('Awaiting server!')
+    print('Awaiting server!!')
     await_server(fernet_obj)
     
