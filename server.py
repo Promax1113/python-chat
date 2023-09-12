@@ -98,6 +98,8 @@ def get_connected_users(usr):
 def await_command(usr):
     command_dict = {'send_message': messaging, 'get_logged_users': get_connected_users}
     while True:
+        usr.send(json.dumps({'status': 'Awating', 'command_options': list(command_dict.keys())}), encode=True)
+        print('sent dict')
         data = usr.receive()
         command_dict.get(data)(usr)
 

@@ -19,7 +19,8 @@ class message:
     def get_data(self) -> dict:
         return {'timestamp': self.__timestamp.strftime('%Y/%m/%d-%H:%M:%S'), 'from': self.__from_username,
                 'to': self.__to_username, 'content': self.__content}
-
+    def change_content(self, new_content):
+        self.__content = new_content
 
 def gen_fernet_key(passcode: bytes) -> bytes:
     assert isinstance(passcode, bytes)
@@ -34,6 +35,7 @@ def receive(socket: object, timeout: float, fernet: object = None):
     while not data:
         time.sleep(1)
         data = socket.recv(4096)
+        print(data)
         if not fernet:
             data = data.decode()
         else:
@@ -116,9 +118,10 @@ def messaging(key):
 
 def await_server(key):
     while True:
-        command_dict = ['send_message', 'get_logged_users']
+        print('baller')
+        command_dict = receive(client, 10, key)
+        print(command_dict)
         send(client, command_dict[1], key, True)
-        receive(client, 10, key)
 
 if __name__ == '__main__':
     connect('127.0.0.1', 585)
@@ -126,5 +129,6 @@ if __name__ == '__main__':
     result = login()
     fernet_obj = result['key']
     username = result['username']
+    print('Awaiting server!')
     await_server(fernet_obj)
     
