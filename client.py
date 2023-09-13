@@ -35,7 +35,6 @@ def receive(socket: object, timeout: float, fernet: object = None):
     while not data:
         time.sleep(1)
         data = socket.recv(4096)
-        print(data)
         if not fernet:
             data = data.decode()
         else:
@@ -111,17 +110,34 @@ def messaging(key):
     if input('Send? (y/N): ').lower() == 'y':
         send(client, json.dumps(msg.get_data()), key, True)
     data = ''
-    while not data:
+    while not data or data == '200 Success!':
+        if data == '200 Success!':
+            print(data)
+            data = None
         data = receive(client, 10, key)
     data = json.loads(data)
     print(f"Message from {data['from']}. Message: {data['content']}")
+    print(receive(client, 5, key))
 
 def await_server(key):
-    while True:
-        print('baller')
-        command_dict = receive(client, 10, key)
-        print(command_dict)
-        send(client, command_dict[1], key, True)
+
+    print('baller')
+    dict_cmd = receive(client, 10, key)
+    command_dict = json.loads(dict_cmd)
+    print(f"Server status: {command_dict['status']}")
+    cmd_option: list = command_dict['command_options']
+    chosen = cmd_option.index(cmd_option[0])
+    send(client, cmd_option[0], key, True)
+    print('sent')
+    match chosen:
+        case 0:
+            print(cmd_option)
+            messaging(key)
+        case 1:
+            print(receive(client, 10, key))
+        case _:
+            print('wth')
+
 
 if __name__ == '__main__':
     connect('127.0.0.1', 585)

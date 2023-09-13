@@ -81,7 +81,7 @@ def messaging(usr):
             print(message)
             message = json.loads(usr.receive())
         print(message)
-
+        usr.send('200 Success!', True)
         username_list = [name.get_nonsens_user_info()['username'] for name in user_list]
         if message['to'] in username_list:
             to_id = username_list.index(message['to'])
@@ -97,11 +97,15 @@ def get_connected_users(usr):
 
 def await_command(usr):
     command_dict = {'send_message': messaging, 'get_logged_users': get_connected_users}
-    while True:
-        usr.send(json.dumps({'status': 'Awating', 'command_options': list(command_dict.keys())}), encode=True)
-        print('sent dict')
-        data = usr.receive()
-        command_dict.get(data)(usr)
+    time.sleep(3)
+
+    usr.send(json.dumps({'status': 'Awating', 'command_options': list(command_dict.keys())}), encode=True)
+    print('sent dict')
+    data = usr.receive()
+    print(data)
+    time.sleep(3)
+
+    command_dict.get(data)(usr)
 
 if __name__ == '__main__':
     print('Starting server...')
