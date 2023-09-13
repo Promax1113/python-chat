@@ -19,7 +19,8 @@ class message:
     def get_data(self) -> dict:
         return {'timestamp': self.__timestamp.strftime('%Y/%m/%d-%H:%M:%S'), 'from': self.__from_username,
                 'to': self.__to_username, 'content': self.__content}
-
+    def change_content(self, new_content):
+        self.__content = new_content
 
 def gen_fernet_key(passcode: bytes) -> bytes:
     assert isinstance(passcode, bytes)
@@ -46,7 +47,6 @@ def receive(socket: object, timeout: float, fernet: object = None):
 
 
 def send(socket: object, message: str, fernet: object = None, encode: bool = True):
-    # TODO Add encryption to comunication
     if encode:
         if not fernet:
             socket.sendall(message.encode())
@@ -78,6 +78,7 @@ def connect(ip: str, port: int):
 
 def login():
     data = receive(client, 10)
+    print(data)
     data = json.loads(data)
     if data['authed'] == True:
         print(f"Logged in as {data['username']}")
@@ -109,16 +110,41 @@ def messaging(key):
     if input('Send? (y/N): ').lower() == 'y':
         send(client, json.dumps(msg.get_data()), key, True)
     data = ''
-    while not data:
+    while not data or data == '200 Success!':
+        if data == '200 Success!':
+            print(data)
+            data = None
         data = receive(client, 10, key)
     data = json.loads(data)
     print(f"Message from {data['from']}. Message: {data['content']}")
+    print(receive(client, 5, key))
+
+def await_server(key):
+
+    print('baller')
+    dict_cmd = receive(client, 10, key)
+    command_dict = json.loads(dict_cmd)
+    print(f"Server status: {command_dict['status']}")
+    cmd_option: list = command_dict['command_options']
+    chosen = cmd_option.index(cmd_option[0])
+    send(client, cmd_option[0], key, True)
+    print('sent')
+    match chosen:
+        case 0:
+            print(cmd_option)
+            messaging(key)
+        case 1:
+            print(receive(client, 10, key))
+        case _:
+            print('wth')
 
 
 if __name__ == '__main__':
-    connect('192.168.1.50', 585)
+    connect('127.0.0.1', 585)
     print('Connected to server!')
     result = login()
     fernet_obj = result['key']
     username = result['username']
-    messaging(fernet_obj)
+    print('Awaiting server!g')
+    await_server(fernet_obj)
+    

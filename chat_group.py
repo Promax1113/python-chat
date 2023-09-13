@@ -11,16 +11,20 @@ class _group:
         self.__hash = group_hash
         self.user_list = []
         self.__join_message = f'Welcome to {self.name}!'
-    
+
     def set_join_message(self, message: str):
         self.__join_message = message
+
     def get_join_message(self):
         return self.__join_message
+
     def get_hash(self):
         return self.__hash
-    
+
     def get_info(self):
-        return {'name': self.name, 'author': self.__author, 'user_list': self.user_list, 'join_message': self.__join_message}
+        return {'name': self.name, 'author': self.__author, 'user_list': self.user_list,
+                'join_message': self.__join_message}
+
 
 class user:
     def __init__(self, username: str, userid: int, address: str, socket_obj: object, auth: bool, fernet_key: bytes):
@@ -40,7 +44,7 @@ class user:
         self.__joined_groups.append({'name': group_chat.name, 'obj': group_chat})
         group_list.append({'name': group_chat.name, 'obj': group_chat})
         return group_chat.name
-    
+
     def join_group(self, name: str, password: str):
         chat_to_join = 'undefined'
         for chat in group_list:
@@ -63,12 +67,12 @@ class user:
         self.__address = address
 
     def send(self, message: str, encode: bool = True):
-    # TODO Add encryption to comunication
+        # TODO Add encryption to comunication
         if encode:
             self.__client.sendall(self.__key.encrypt(message.encode()))
         else:
             self.__client.sendall(self.__key.encrypt(message))
-    
+
     def receive(self, timeout: float = 600):
         data = ''
         start = time.time()
@@ -85,14 +89,13 @@ class user:
     def get_key(self):
         return self.__key
 
-    
-
     def logout(self):
         self.__client.sendall('Logging out...'.encode())
         self.__client.close()
-    
+
     def get_auth(self) -> bool:
         return self.__auth
 
     def get_nonsens_user_info(self):
-        return {"username": self.__username, "address": self.__address, "userid": self.__userid, "owned_groups": self.__owned_groups, "joined_groups": self.__joined_groups}
+        return {"username": self.__username, "address": self.__address, "userid": self.__userid,
+                "owned_groups": self.__owned_groups, "joined_groups": self.__joined_groups}
