@@ -110,10 +110,7 @@ def messaging(key):
     if input('Send? (y/N): ').lower() == 'y':
         send(client, json.dumps(msg.get_data()), key, True)
     data = ''
-    while not data or data == '200 Success!':
-        if data == '200 Success!':
-            print(data)
-            data = None
+    while not data:
         data = receive(client, 10, key)
     data = json.loads(data)
     print(f"Message from {data['from']}. Message: {data['content']}")
@@ -138,7 +135,7 @@ def await_server(key):
         case _:
             print('wth')
 
-
+    
 if __name__ == '__main__':
     connect('127.0.0.1', 585)
     print('Connected to server!')

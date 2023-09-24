@@ -67,7 +67,7 @@ class user:
         self.__address = address
 
     def send(self, message: str, encode: bool = True):
-        # TODO Add encryption to comunication
+        print(self.__key)
         if encode:
             self.__client.sendall(self.__key.encrypt(message.encode()))
         else:

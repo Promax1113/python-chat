@@ -6,6 +6,7 @@ import json
 import os
 import time
 from socket import *
+from multiprocessing import *
 
 from fernet import Fernet
 
@@ -107,11 +108,9 @@ def await_command(usr):
 
     command_dict.get(data)(usr)
 
-if __name__ == '__main__':
-    print('Starting server...')
-    server_setup('127.0.0.1', 585)
-    while True:
-        c, addr = s.accept()
+def await_connections(c, addr):
+    
+        
         print('Connection Received from:', addr, 'Accepting...')
         address_list = [name.get_nonsens_user_info()['address'] for name in user_list]
         c_ip = addr[0]
@@ -142,3 +141,10 @@ if __name__ == '__main__':
                     time.sleep(2)
                     await_command(authed_user)
                     
+if __name__ == '__main__':
+    print('Starting server...')
+    server_setup('127.0.0.1', 585)
+    while True:
+        c, addr = s.accept()
+        client = Process(target=await_connections, args=(c, addr))
+        client.start()
