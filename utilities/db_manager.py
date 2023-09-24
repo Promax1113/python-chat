@@ -18,7 +18,8 @@ def write_database(to_write: dict) -> None:
 
 def read_database():
     global db
+    user: list
     for key, item in db.items():
-        print("%s=%s" % (key, item))
-
+        user.append(item)
+    return user
 

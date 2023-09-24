@@ -1,5 +1,6 @@
 # TODO Aiming for the client to request or post not server send client stuff!
 # ! Duplicated user_list[] utils.py and this file
+# !! user_list is now saved in the Database
 import base64
 import hashlib
 import json
@@ -12,10 +13,9 @@ from fernet import Fernet
 
 import chat_group
 import utils
-from utilities import password_check
+from utilities import password_check, read_database, write_database
 
 s = socket()
-user_list = []
 
 
 class client:
@@ -131,8 +131,8 @@ def await_connections(c, addr):
                 logout(authed_user, invalid=True)
 
             else:
-                if not authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for
-                                                                           name in user_list]:
+                if not authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list]:
+                    user_list = read_database()
                     user_list.append(authed_user)
                     authed_user.send(json.dumps(
                         {'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
