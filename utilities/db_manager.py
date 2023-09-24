@@ -1,8 +1,8 @@
-import json
+import json, os
 
 from sqlitedict import SqliteDict
 
-db = SqliteDict('../server.db', outer_stack=False)
+db = SqliteDict(f'{os.getcwd()}/../server.db', outer_stack=False)
 
 
 def write_database(to_write: dict) -> None:
@@ -18,8 +18,9 @@ def write_database(to_write: dict) -> None:
 
 def read_database():
     global db
-    user: list
+    user: list = []
     for key, item in db.items():
-        user.append(item)
+        user.append(json.loads(item))
     return user
 
+print(read_database())

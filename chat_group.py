@@ -35,6 +35,7 @@ class user:
         self.__joined_groups = []
         self.__address: str = address
         self.__auth = auth
+        self.__storage_key = fernet_key
         self.__key = Fernet(fernet_key)
 
     def create_group(self, name: str, password: str):
@@ -98,4 +99,4 @@ class user:
 
     def get_nonsens_user_info(self):
         return {"username": self.__username, "address": self.__address, "userid": self.__userid,
-                "owned_groups": self.__owned_groups, "joined_groups": self.__joined_groups}
+                "owned_groups": self.__owned_groups, "joined_groups": self.__joined_groups, "key": self.__storage_key.decode()}

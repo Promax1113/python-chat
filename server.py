@@ -83,7 +83,7 @@ def messaging(usr):
             message = json.loads(usr.receive())
         print(message)
         usr.send('200 Success!', True)
-        username_list = [name.get_nonsens_user_info()['username'] for name in user_list]
+        username_list = [name['username'] for name in read_database()]
         if message['to'] in username_list:
             to_id = username_list.index(message['to'])
             r_user = user_list[to_id]
@@ -112,7 +112,7 @@ def await_connections(c, addr):
     
         
         print('Connection Received from:', addr, 'Accepting...')
-        address_list = [name.get_nonsens_user_info()['address'] for name in user_list]
+        address_list = [name['address'] for name in read_database()]
         c_ip = addr[0]
         if c_ip in address_list:
             usr_index = address_list.index(c_ip)
@@ -122,22 +122,26 @@ def await_connections(c, addr):
         else:
             authed_user = client(c).login()
 
-        if len(user_list) + 1 >= 10:
+        if len(read_database()) + 1 >= 10:
             authed_user.send('Server full!')
         else:
-            if authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in
-                                                                   user_list] and not authed_user.get_auth():
+            if authed_user.get_nonsens_user_info()['username'] in [name['username'] for name in
+                                                                   read_database()] and not authed_user.get_auth():
                 authed_user.send("\nCan't login with 2 sessions! / Username already taken!\n")
                 logout(authed_user, invalid=True)
 
             else:
-                if not authed_user.get_nonsens_user_info()['username'] in [name.get_nonsens_user_info()['username'] for name in user_list]:
+                if not authed_user.get_nonsens_user_info()['username'] in [name['username'] for name in read_database()]:
                     user_list = read_database()
-                    user_list.append(authed_user)
+                    user_list.append(authed_user.get_nonsens_user_info()['username'])
+                    write_database(authed_user.get_nonsens_user_info())
+
                     authed_user.send(json.dumps(
-                        {'connected_users': [name.get_nonsens_user_info()['username'] for name in user_list]}))
+                        {'connected_users': [user_list]}
+                        ))
                     await_command(authed_user)
                 else:
+
                     time.sleep(2)
                     await_command(authed_user)
                     
@@ -146,5 +150,5 @@ if __name__ == '__main__':
     server_setup('127.0.0.1', 585)
     while True:
         c, addr = s.accept()
-        client = Process(target=await_connections, args=(c, addr))
-        client.start()
+        client_child = Process(target=await_connections, args=(c, addr))
+        client_child.start()
